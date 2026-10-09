@@ -1,0 +1,4 @@
+
+#+ATTR_HTML: :class lede
+Working notes on what I am building, measuring, and getting wrong, written as it happens. Entries are dated and left as they were.
+

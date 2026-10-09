@@ -1,0 +1,17 @@
+#+TITLE: A baseline I can trust
+#+DATE: <2026-09-02 Wed>
+#+DESCRIPTION: Fixing the 40M-parameter run so that every later comparison has something stable to stand on.
+
+Before sweeping anything I want a run that I can reproduce to the third decimal. This post records that run so I can link to it instead of re-describing it.
+
+* Configuration
+
+Twelve layers, 512 wide, 8 heads, sequence length 1,024, batch of 256 sequences. AdamW with $\beta = (0.9, 0.95)$, weight decay 0.1, gradient clipping at 1.0. Tokeniser and data mix are unchanged from July.
+
+* Numbers
+
+Three seeds, 100k steps each: validation loss $2.611 \pm 0.006$. Wall-clock is 6h40m per run on the shared node, which makes a five-seed sweep an overnight job rather than an afternoon one.
+
+* Notes
+
+The only surprise was how much of the seed variance came from data order rather than initialisation. Worth a proper ablation later.

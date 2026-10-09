@@ -1,0 +1,405 @@
+/* Research log — one column, hairlines, no boxes.
+   Targets the HTML emitted by ox-html 9.7 with html5-fancy on.        */
+
+/* ---------- Fonts (self-hosted, latin subsets) ---------- */
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("../fonts/SourceSerif4.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("../fonts/SourceSerif4-Italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/IBMPlexMono-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/IBMPlexMono-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/IBMPlexMono-Italic.woff2") format("woff2");
+}
+
+/* ---------- Tokens ---------- */
+
+:root {
+  --bg:      #f9f8f6;   /* plaster, not paper-yellow, not screen-white */
+  --ink:     #1c1b19;
+  --ink-2:   #6b6964;   /* meta: dates, captions, colophon */
+  --ink-3:   #a3a09a;   /* faint: underlines, comments */
+  --rule:    #dedbd5;   /* hairlines */
+  --code-bg: #f1efeb;
+
+  --serif: "Source Serif 4", Charter, "Iowan Old Style", Georgia, serif;
+  --mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 34rem;     /* ~72 characters of Source Serif at 18px */
+  --gutter:  1rem;
+}
+
+/* ---------- Base ---------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  padding: 0 var(--gutter);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Org emits <header id=preamble>, <main id=content>, <footer id=postamble>
+   as siblings of <body>. Each is its own column. */
+#preamble, #content, #postamble {
+  max-width: var(--measure);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
+  text-underline-offset: 0.18em;
+}
+a:hover { text-decoration-color: var(--ink); }
+
+p { margin: 0 0 1.25rem; }
+
+strong, b { font-weight: 600; }
+em, i { font-style: italic; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 3rem 0;
+}
+
+sup, sub { line-height: 0; font-size: 0.72em; }
+
+::selection { background: #e6e2da; }
+
+/* ---------- Meta face: everything set in mono ---------- */
+
+.site-nav, .dateline, figcaption, caption, time, .colophon,
+#table-of-contents h2, .footref, label.org-src-name, .subtitle {
+  font-family: var(--mono);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Nav ---------- */
+
+.site-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 2.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+}
+.site-nav a { text-decoration: none; }
+.site-nav a:hover { color: var(--ink); }
+.site-name { color: var(--ink); font-weight: 500; }
+.site-links a { margin-left: 1.5rem; }
+
+/* ---------- Title block ---------- */
+
+#content { margin-top: 5rem; }
+
+.dateline {
+  margin: 5rem 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+#preamble:has(.dateline) + #content { margin-top: 0; }
+
+h1.title {
+  margin: 0 0 2.5rem;
+  font-size: 2.25rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+.subtitle {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+/* ---------- Home ---------- */
+
+.lede {
+  font-size: 1.25rem;
+  line-height: 1.45;
+  margin-bottom: 3rem;
+  text-wrap: pretty;
+}
+
+ul.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rule);
+}
+ul.entries li {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  column-gap: 1rem;
+  margin: 0;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+}
+ul.entries time {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  padding-top: 0.42em;   /* sit on the serif baseline */
+}
+ul.entries a { text-decoration: none; }
+ul.entries a:hover { text-decoration: underline; }
+ul.entries .entry-desc {
+  grid-column: 2;
+  margin-top: 0.1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* ---------- Headings ---------- */
+
+h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+h2 { font-size: 1.3rem;  margin: 3rem 0 1rem; }
+h3 { font-size: 1.1rem;  margin: 2.25rem 0 0.75rem; }
+h4 { font-size: 1rem;    margin: 1.75rem 0 0.5rem; font-weight: 400; font-style: italic; }
+h5, h6 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+
+/* Org wraps every headline in <section class="outline-N">; nothing to do. */
+section > h2:first-child { margin-top: 3rem; }
+#content > header + section > h2 { margin-top: 0; }
+
+/* ---------- Table of contents (opt-in per post: #+OPTIONS: toc:2) ---------- */
+
+#table-of-contents {
+  margin: 0 0 3.5rem;
+  font-size: 0.95rem;
+}
+#table-of-contents h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+}
+#text-table-of-contents ul { list-style: none; margin: 0; padding: 0; }
+#text-table-of-contents ul ul { padding-left: 1.25rem; }
+#text-table-of-contents li { margin: 0.2rem 0; }
+#text-table-of-contents a { text-decoration: none; }
+#text-table-of-contents a:hover { text-decoration: underline; }
+
+/* ---------- Lists ---------- */
+
+ul, ol { margin: 0 0 1.25rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.35rem; }
+li > p { margin-bottom: 0.5rem; }
+li > ul, li > ol { margin-top: 0.35rem; margin-bottom: 0; }
+dl { margin: 0 0 1.25rem; }
+dt { font-weight: 600; }
+dd { margin: 0.2rem 0 0.8rem 1.4rem; }
+.org-ul { list-style: none; padding-left: 1.4rem; }
+.org-ul > li::before {
+  content: "–";
+  display: inline-block;
+  width: 1.4rem;
+  margin-left: -1.4rem;
+  color: var(--ink-3);
+}
+ul.entries > li::before { content: none; }
+
+/* ---------- Figures ---------- */
+
+figure {
+  margin: 2.5rem 0;
+}
+figure img, .figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+figcaption, caption {
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-align: left;
+}
+.figure-number, .table-number {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ---------- Tables ---------- */
+
+table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: collapse;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+caption { caption-side: top; margin: 0 0 0.6rem; }
+thead { border-bottom: 1px solid var(--rule); }
+th, td {
+  padding: 0.5rem 1rem 0.5rem 0;
+  vertical-align: top;
+}
+th:last-child, td:last-child { padding-right: 0; }
+th { font-weight: 600; }
+.org-left   { text-align: left; }
+.org-right  { text-align: right; }
+.org-center { text-align: center; }
+tbody + tbody { border-top: 1px solid var(--rule); }  /* hline groups */
+
+/* ---------- Code ---------- */
+
+code, kbd, samp, pre {
+  font-family: var(--mono);
+  font-variant-numeric: lining-nums;
+}
+code { font-size: 0.86em; }
+pre {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: var(--code-bg);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  tab-size: 4;
+}
+.org-src-container, pre.example { margin: 1.75rem 0; }
+label.org-src-name {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+.org-src-container pre { margin: 0; }
+
+/* htmlize classes (org-html-htmlize-output-type 'css): monochrome
+   highlighting by weight and grey, not colour. */
+.org-keyword, .org-builtin        { font-weight: 500; }
+.org-function-name                { font-weight: 500; }
+.org-string, .org-doc             { color: var(--ink-2); }
+.org-comment, .org-comment-delimiter { color: var(--ink-3); font-style: italic; }
+.org-type, .org-constant, .org-variable-name, .org-preprocessor { color: inherit; }
+
+/* ---------- Quotes, verse, misc blocks ---------- */
+
+blockquote {
+  margin: 2rem 0;
+  padding: 0 0 0 1.25rem;
+  border-left: 1px solid var(--ink);
+}
+blockquote p:last-child { margin-bottom: 0; }
+.verse { white-space: pre-line; }
+.org-center { text-align: center; }
+
+/* ---------- Math ---------- */
+
+mjx-container[display="true"] {
+  margin: 1.5rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ---------- Footnotes ---------- */
+
+.footref, .footnum { text-decoration: none; font-weight: 500; }
+#footnotes {
+  margin-top: 4rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+#footnotes h2.footnotes { display: none; }
+.footdef {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.footdef > sup { line-height: 1.55; font-size: 0.75rem; flex: 0 0 1rem; }
+.footdef .footpara { display: inline; margin: 0; }
+
+/* ---------- Footer ---------- */
+
+#postamble {
+  margin-top: 6rem;
+  margin-bottom: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+.colophon {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+.colophon a { text-decoration: none; }
+.colophon a:hover { text-decoration: underline; }
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 40rem) {
+  body { font-size: 1.0625rem; }
+  h1.title { font-size: 1.85rem; margin-bottom: 2rem; }
+  .dateline { margin-top: 3.5rem; }
+  #content { margin-top: 3.5rem; }
+  .lede { font-size: 1.15rem; }
+  ul.entries li { grid-template-columns: 1fr; row-gap: 0.1rem; }
+  ul.entries .entry-desc { grid-column: 1; }
+  #postamble { margin-top: 4rem; }
+}

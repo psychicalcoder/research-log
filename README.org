@@ -1,0 +1,59 @@
+#+TITLE: Research log — site source
+
+One-column research blog written in Org mode and exported with =ox-publish=.
+
+* Layout
+
+#+begin_example
+publish.el          all export configuration (the design lives here as much as in the CSS)
+Makefile            make / make rebuild / make serve
+org/
+  _intro.org        the paragraph at the top of the home page  (edit this)
+  index.org         GENERATED on every build: intro + post list (do not edit)
+  about.org
+  posts/            one .org file per entry; the home page lists them newest-first
+  css/style.css
+  fonts/            Source Serif 4 + IBM Plex Mono, self-hosted (latin subsets)
+  img/
+html/               output; deploy this directory
+#+end_example
+
+* Writing a post
+
+Create =org/posts/YYYY-MM-DD-slug.org=:
+
+#+begin_example
+,#+TITLE: A baseline I can trust
+,#+DATE: <2026-09-02 Wed>
+,#+DESCRIPTION: One sentence shown under the title on the home page. Optional.
+
+Body...
+#+end_example
+
+- =#+DATE= is used for sorting and for the dateline; without it the file's mtime is used.
+- Long post? Add =#+OPTIONS: toc:2=.
+- Figures: =#+CAPTION:= then =[[file:../img/name.svg]]=. They are capped at column width and never upscaled, so export at ≥ 1300 px wide (or use SVG).
+- Tables: =#+CAPTION:= above the table; =|---|= lines become hairlines.
+- Math: =$...$= inline, =\begin{equation}= for numbered display. MathJax 3 from jsDelivr is the only external request the site makes.
+- Link between posts with =[[file:other-post.org]]=; Org rewrites the extension.
+
+* Building
+
+#+begin_example
+make            # incremental
+make rebuild    # everything (after changing publish.el or the CSS)
+make serve      # http://localhost:8000
+#+end_example
+
+Inside Emacs: =M-x load-file RET publish.el RET=, then =M-x org-publish-project RET site RET=.
+
+Install the =htmlize= package if you want syntax highlighting in code blocks; the CSS already
+styles its classes (monochrome: weight and grey, no colour). Without it, code is plain text.
+
+* Design rules (so the site stays this way)
+
+- One column, 34rem measure, no boxes, no shadows, no rounded corners.
+- Two faces: Source Serif 4 for prose, IBM Plex Mono for anything that is metadata (dates, captions, nav, colophon, code).
+- Body text is near-black. Restraint goes into the chrome, not the content.
+- Hairlines (=--rule=) separate; ink-coloured 1px lines (=--ink=) emphasise (table top/bottom, blockquote).
+- No accent colour. Links are underlined in =--ink-3= and darken on hover.

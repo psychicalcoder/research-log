@@ -1,0 +1,43 @@
+#+TITLE: Dynamically Bound Variables Dependencies in Emacs Lisp
+#+DATE: <2026-09-16 Wed>
+#+DESCRIPTION: An introduction to dynamically bound variables.
+
+#+BEGIN_QUOTE
+It is not necessary for dynamic scope to be the only scope rule
+provided, just useful for it to be available.
+
+---Richard Stallman, EMACS: The Extensible, Customizable, Self-Documenting Display Editor
+#+END_QUOTE
+
+The story of dynamic binding begins almost where the story of
+programming languages does. The very first dynamic binding appeared in
+1960 as a bug in the Lisp interpreter. But, like a mutation that turns
+out to give an organism an advantage, dynamic was preserved, refined,
+and passed on. What began as an accidednt in the ancestor of Lisp
+became an intentional feature in many Lisp dialects.
+
+* What's dynamic binding?
+
+Binding is the mapping between a variable name and its value. Most languages use lexical binding, which can only be accessed within the lexical scope of the binding. Let's see an example written in C:
+
+#+BEGIN_SRC c
+  int flag = 1;
+
+  int testflag() {
+    return flag ? 1 : 0;
+  }
+
+  int foo() {
+    int flag = 0;
+    flag = 0;
+    return testflag();
+  }
+
+  int main() {
+    testflag(); // 1
+    foo(); // 1 
+    testflag(); // 1
+  }
+#+END_SRC
+
+The value of the global variable ~flag~ by default is ~1~. ~foo~ creates a new binding for the name ~flag~ with value ~0~. With the /lexical scoping/ rules, only the references occuring in the function body of ~foo~ refers to the local binding. Reading ~flag~ in ~testflag~, on the other hand, resides outside of ~foo~, which always refers to the global binding (i.e. ~flag = 1~). 

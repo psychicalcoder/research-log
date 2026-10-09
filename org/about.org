@@ -1,0 +1,11 @@
+#+TITLE: About
+
+Hello! I'm Marvin. You can also call me Tsung-Han (IPA: 宗 =/tsŋˉ/= · 函 =/xanˊ/=) if you are confident with the prounciation.
+
+I'm currently pursuing my Master's degree at EPFL. I works with [[https://pit-claudel.fr/clement/][Prof. Clément Pit-Claudel]] in the [[https://systemf.epfl.ch/][SYSTEMF Lab]]. We are working on dynamic variable dependencies of Lisp functions aiming to reducing bugs caused by dynamic bindings in Lisp-family languages.
+
+Before EPFL, I was fortunate to collaborate with [[https://cs.nycu.edu.tw/~chuang][Prof. Chun-Ying Huang.]] We published /TIMEMACHINE/, a ransomeware defencing plugin for hypervisors, and /CASE/, a context aware system call enforement framework.
+
+I'm also a chef 🍳, a photographer 📷, a baker 🥖, and a painter 🖌️. 
+
+You can reach me at [[mailto:marvinliu.2001@gmail.com][marvinliu.2001@gmail.com]].
