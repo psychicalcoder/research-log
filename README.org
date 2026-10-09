@@ -13,7 +13,7 @@ org/
   about.org
   posts/            one .org file per entry; the home page lists them newest-first
   css/style.css
-  fonts/            Source Serif 4 + IBM Plex Mono, self-hosted (latin subsets)
+  fonts/            Newsreader, Schibsted Grotesk, IBM Plex Mono; self-hosted (latin subsets)
   img/
 html/               output; deploy this directory
 #+end_example
@@ -48,12 +48,15 @@ make serve      # http://localhost:8000
 Inside Emacs: =M-x load-file RET publish.el RET=, then =M-x org-publish-project RET site RET=.
 
 Install the =htmlize= package if you want syntax highlighting in code blocks; the CSS already
-styles its classes (monochrome: weight and grey, no colour). Without it, code is plain text.
+styles its classes (keywords in violet, strings and comments in grey). Without it, code is plain text.
 
 * Design rules (so the site stays this way)
 
-- One column, 34rem measure, no boxes, no shadows, no rounded corners.
-- Two faces: Source Serif 4 for prose, IBM Plex Mono for anything that is metadata (dates, captions, nav, colophon, code).
-- Body text is near-black. Restraint goes into the chrome, not the content.
-- Hairlines (=--rule=) separate; ink-coloured 1px lines (=--ink=) emphasise (table top/bottom, blockquote).
-- No accent colour. Links are underlined in =--ink-3= and darken on hover.
+- A white sheet on lavender: a hairline border (=--rule=) frames the page. The sheet is only as
+  wide as the 34rem text column plus an equal margin either side, and is centred on wide screens.
+- Three faces: Newsreader for prose and for post titles in the home-page list; Schibsted Grotesk
+  (heavy weights) for page titles, headings, nav, dates and figure/table numbers; IBM Plex Mono for code only.
+- One strong colour, violet (=--violet=): page titles, the site name, links, section numbers,
+  table rules, the quote bar. Body text is violet-black (=--ink=), not grey.
+- Hairlines (=--rule=) separate. No shadows, no rounded corners, no boxes beyond the sheet itself.
+- Dark mode follows the OS: the same layout on deep purple, with a lighter violet.
