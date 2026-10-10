@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Funcall Effect</title>
+<meta name="description" content="Tracking when function symbol references are actually called, so dvar-track inherits dependencies only at real call sites." />
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" href="../css/style.css" type="text/css">
+<link rel="icon" href="../img/favicon.ico" sizes="24x24">
+</head>
+<body>
+<header id="preamble" class="status">
+<nav class="site-nav">
+  <a class="site-name" href="../index.html">Regarder le lac</a>
+  <span class="site-links"><a href="../index.html">Log</a><a href="../about.html">About</a></span>
+</nav>
+<p class="dateline"><time datetime="2026-10-10">2026-10-10</time></p>
+</header>
+<main id="content" class="content">
+<header>
+<h1 class="title">Funcall Effect</h1>
+</header>
+<figure id="orgfdc8a6b">
+<img src="../img/denges_vineyard.jpg" alt="denges_vineyard.jpg">
+
+<figcaption><span class="figure-number">Figure 1: </span>A vineyard in Denges, Switzerland</figcaption>
+</figure>
+<section id="outline-container-org36a20f2" class="outline-2">
+<h2 id="org36a20f2">Function Symbols</h2>
+<div class="outline-text-2" id="text-org36a20f2">
+<p>
+In Lisp (and many other languages), functions are also values.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span class="org-keyword">defun</span> <span class="org-function-name">universal-concat</span> (<span class="org-type">&amp;rest</span> seqs)
+(<span class="org-keyword">let</span> ((f (<span class="org-keyword">if</span> (consp (car-safe seqs)) #'append #'concat)))
+  (apply f seqs))
+</pre>
+</div>
+
+<p>
+A function symbol reference usually implies that the function will be
+called. However, when will the program trigger the call is nontrivial. The
+following example shows 4 different patterns of function symbol
+references.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span class="org-comment-delimiter">;; </span><span class="org-comment">a direct call
+</span>(foo)
+
+<span class="org-comment-delimiter">;; </span><span class="org-comment">calls in mapcar
+</span>(mapcar #'foo list)
+
+<span class="org-comment-delimiter">;; </span><span class="org-comment">calls when initializing flycheck-mode
+</span>(add-hook 'flycheck-mode-hook #'foo)
+
+<span class="org-comment-delimiter">;; </span><span class="org-comment">calls when the process status changes
+</span>(make-process ... <span class="org-builtin">:sentinel</span> #'foo)
+</pre>
+</div>
+
+<p>
+For <i>dvar-track</i> to be sound and complete, it needs to know the call
+site, and track the dynamic binding environment on the call
+site. However, in our previous implementation, it treat function
+symbol references as typical function calls. This approach works well
+with the <code>mapcar</code> example and indeed it is a very common pattern in
+ELisp, but it also wrongly inherits the dependencies of a function
+even when the referenced function is not called immediately.
+</p>
+
+<p>
+To address the problem, I propose a new approach, <i>funcall effects</i> to
+track function symbol references more precisely.
+</p>
+</div>
+</section>
+<section id="outline-container-org0ba0633" class="outline-2">
+<h2 id="org0ba0633">Funcall Effects</h2>
+<div class="outline-text-2" id="text-org0ba0633">
+<p>
+Those functions will be called immediately after the references are
+the pattern we really want to track, such as <code>(mapcar #'foo l)</code>, <code>(seq-do
+#'foo l)</code>, etc. The basic idea of <i>funcall effects</i> is making <b>calling nth
+argument</b> an signature of a function. With the signature, when a
+function symbol is supplied as an argument, we can check whether the
+callee (and the subcallees) will call the function. Only when the
+callee calls the argument, <i>dvar-track</i> performs the dependency
+inheritance.
+</p>
+
+<p>
+Though I didn&rsquo;t formalize the effect, it is an analogy of a latent
+effect. <i>calling an argument</i> is a effect and <i>supplying something other
+than an argument</i> is the effect handler.
+</p>
+
+<p>
+The base cases are primitives like <code>funcall</code>, <code>apply</code>, <code>mapcar</code>, &#x2026; etc. A
+direct call does not need to be tracked because an argument is not
+<code>fbound</code>, which cannot be called directly. The program must call it with
+<code>funcall</code> or <code>apply</code>.
+</p>
+</div>
+</section>
+<section id="outline-container-orgc31e176" class="outline-2">
+<h2 id="orgc31e176">Bound Variables</h2>
+<div class="outline-text-2" id="text-orgc31e176">
+<p>
+We can also track the dynamic variable environment of the call site
+along with funcall effect. Or more precisely, we can track what
+variables will be bound between the current function and the argument
+actually called.
+</p>
+
+<p>
+For example,
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span class="org-keyword">defun</span> <span class="org-function-name">foo</span> (f)
+  (<span class="org-keyword">let</span> ((v1 nil))
+    (mapc #'f '(1 2 3))))
+
+(<span class="org-keyword">defun</span> <span class="org-function-name">bar</span> (f)
+  (<span class="org-keyword">let</span> ((v2 nil))
+    (foo f)))
+
+(<span class="org-keyword">defun</span> <span class="org-function-name">main</span> ()
+  (bar #'prin1))
+</pre>
+</div>
+
+<table>
+<caption class="t-above"><span class="table-number">Table 1:</span> Handling a funcall effect introduces dependencies</caption>
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Function</th>
+<th scope="col" class="org-left">Funcall Effect</th>
+<th scope="col" class="org-left">Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">mapc</td>
+<td class="org-left">ARG0</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">foo</td>
+<td class="org-left">ARG0 @ {v1}</td>
+<td class="org-left">{}</td>
+</tr>
+
+<tr>
+<td class="org-left">bar</td>
+<td class="org-left">ARG0 @ {v1, v2}</td>
+<td class="org-left">{}</td>
+</tr>
+
+<tr>
+<td class="org-left">main</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Dep(#&rsquo;prin1) / {v1, v2}</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="outline-container-orgbdc006e" class="outline-2">
+<h2 id="orgbdc006e">Local Aliasing</h2>
+<div class="outline-text-2" id="text-orgbdc006e">
+<p>
+It is very common that a function are stored in a local variable and
+then passed to the other function as an argument. The <code>universal-concat</code>
+example at the beginning of this article is an instance. I call this
+pattern a local aliasing. In static analysis, the R-value form does
+not need to be a symbol, it can be an arbitrary S-expression. To be as
+complete as possible, I also handle the return value field of many
+primitives like <code>and</code>, <code>or</code>, <code>prog1</code>, and <code>let</code>. I also tracked such forms
+when supplied as arguments.
+</p>
+
+<div class="org-src-container">
+<label class="org-src-name"><span class="listing-number">Listing 1: </span>lambda-form R-value and argument forms are also tracked.</label><pre class="src src-emacs-lisp">(<span class="org-keyword">let</span> ((f #'(<span class="org-keyword">lambda</span> () ...)))
+  (foo f))
+
+(foo (<span class="org-keyword">if</span> x #'a #'b))
+</pre>
+</div>
+
+<p>
+Unfortunately Emacs Lisp is a dynamic type language, so tracking the
+return value of a function is hard. The local aliasing handler cannot
+really track all the possible values.
+</p>
+</div>
+</section>
+<section id="outline-container-org070951e" class="outline-2">
+<h2 id="org070951e">Limitation</h2>
+<div class="outline-text-2" id="text-org070951e">
+<p>
+The following patterns are not tracked.
+</p>
+
+<ol class="org-ol">
+<li>Calling a closure return by another function.</li>
+<li>Calling via global variable.</li>
+<li>Alias via <code>setq</code></li>
+<li>Calling via dynamically bound variables</li>
+<li>Keyword arguments (only the predefined functions like <code>sort</code> and <code>cl-find</code> are tracked)</li>
+</ol>
+</div>
+</section>
+</main>
+<footer id="postamble" class="status">
+<p class="colophon">© 2026 Marvin Liu · Written in <a href="https://orgmode.org">Org mode</a></p>
+</footer>
+</body>
+</html>
