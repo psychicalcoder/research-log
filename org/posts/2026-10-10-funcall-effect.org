@@ -1,0 +1,129 @@
+#+TITLE: Funcall Effect
+#+DATE: <2026-10-10 Sat>
+#+DESCRIPTION: Tracking when function symbol references are actually called, so dvar-track inherits dependencies only at real call sites.
+
+#+CAPTION: A vineyard in Denges, Switzerland
+[[../img/denges_vineyard.jpg]]
+
+* Function Symbols
+
+In Lisp (and many other languages), functions are also values.
+
+#+BEGIN_SRC emacs-lisp
+  (defun universal-concat (&rest seqs)
+  (let ((f (if (consp (car-safe seqs)) #'append #'concat)))
+    (apply f seqs))
+#+END_SRC
+
+A function symbol reference usually implies that the function will be
+called. However, when will the program trigger the call is nontrivial. The
+following example shows 4 different patterns of function symbol
+references.
+
+#+BEGIN_SRC emacs-lisp
+  ;; a direct call
+  (foo)
+
+  ;; calls in mapcar
+  (mapcar #'foo list)
+
+  ;; calls when initializing flycheck-mode
+  (add-hook 'flycheck-mode-hook #'foo)
+
+  ;; calls when the process status changes
+  (make-process ... :sentinel #'foo)
+#+END_SRC
+
+For /dvar-track/ to be sound and complete, it needs to know the call
+site, and track the dynamic binding environment on the call
+site. However, in our previous implementation, it treat function
+symbol references as typical function calls. This approach works well
+with the ~mapcar~ example and indeed it is a very common pattern in
+ELisp, but it also wrongly inherits the dependencies of a function
+even when the referenced function is not called immediately.
+
+To address the problem, I propose a new approach, /funcall effects/ to
+track function symbol references more precisely.
+
+* Funcall Effects
+
+Those functions will be called immediately after the references are
+the pattern we really want to track, such as ~(mapcar #'foo l)~, ~(seq-do
+#'foo l)~, etc. The basic idea of /funcall effects/ is making *calling nth
+argument* an signature of a function. With the signature, when a
+function symbol is supplied as an argument, we can check whether the
+callee (and the subcallees) will call the function. Only when the
+callee calls the argument, /dvar-track/ performs the dependency
+inheritance.
+
+Though I didn't formalize the effect, it is an analogy of a latent
+effect. /calling an argument/ is a effect and /supplying something other
+than an argument/ is the effect handler.
+
+The base cases are primitives like ~funcall~, ~apply~, ~mapcar~, ... etc. A
+direct call does not need to be tracked because an argument is not
+=fbound=, which cannot be called directly. The program must call it with
+~funcall~ or ~apply~.
+
+* Bound Variables
+
+We can also track the dynamic variable environment of the call site
+along with funcall effect. Or more precisely, we can track what
+variables will be bound between the current function and the argument
+actually called.
+
+For example,
+
+#+BEGIN_SRC emacs-lisp
+  (defun foo (f)
+    (let ((v1 nil))
+      (mapc #'f '(1 2 3))))
+
+  (defun bar (f)
+    (let ((v2 nil))
+      (foo f)))
+
+  (defun main ()
+    (bar #'prin1))
+#+END_SRC
+
+#+CAPTION: Handling a funcall effect introduces dependencies
+| Function | Funcall Effect  | Dependencies            |
+|----------+-----------------+-------------------------|
+| mapc     | ARG0            |                         |
+| foo      | ARG0 @ {v1}     | {}                      |
+| bar      | ARG0 @ {v1, v2} | {}                      |
+| main     |                 | Dep(#'prin1) / {v1, v2} |
+
+* Local Aliasing
+
+It is very common that a function are stored in a local variable and
+then passed to the other function as an argument. The ~universal-concat~
+example at the beginning of this article is an instance. I call this
+pattern a local aliasing. In static analysis, the R-value form does
+not need to be a symbol, it can be an arbitrary S-expression. To be as
+complete as possible, I also handle the return value field of many
+primitives like ~and~, ~or~, ~prog1~, and ~let~. I also tracked such forms
+when supplied as arguments.
+
+#+CAPTION: lambda-form R-value and argument forms are also tracked. 
+#+BEGIN_SRC emacs-lisp
+  (let ((f #'(lambda () ...)))
+    (foo f))
+
+  (foo (if x #'a #'b))
+#+END_SRC
+
+Unfortunately Emacs Lisp is a dynamic type language, so tracking the
+return value of a function is hard. The local aliasing handler cannot
+really track all the possible values.
+
+* Limitation
+
+The following patterns are not tracked.
+
+1. Calling a closure return by another function.
+2. Calling via global variable.
+3. Alias via =setq=
+4. Calling via dynamically bound variables
+5. Keyword arguments (only the predefined functions like ~sort~ and ~cl-find~ are tracked)
