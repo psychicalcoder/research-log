@@ -17,6 +17,25 @@
 
 (defun my/path (rel) (expand-file-name rel my/site-root))
 
+;;; Syntax highlighting -----------------------------------------------
+
+;; org-html highlights src blocks only when `htmlize' is loadable.  In
+;; --batch no packages are initialised, so keep a project-local copy in
+;; .packages/ (gitignored) and fetch it on first build.
+(require 'package)
+(setq package-user-dir (my/path ".packages/")
+      package-archives '(("gnu"    . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+(package-initialize)
+(unless (package-installed-p 'htmlize)
+  (package-refresh-contents)
+  (package-install 'htmlize))
+(require 'htmlize)
+
+;; Native fontification in batch needs the major mode for each language;
+;; `lisp', `emacs-lisp', `python', `sh', `C' ... ship with Emacs.
+(setq org-src-fontify-natively t)
+
 ;;; Identity ----------------------------------------------------------
 
 (defvar my/site-name  "Marvin Liu")

@@ -18,26 +18,91 @@ became an intentional feature in many Lisp dialects.
 
 * What's dynamic binding?
 
-Binding is the mapping between a variable name and its value. Most languages use lexical binding, which can only be accessed within the lexical scope of the binding. Let's see an example written in C:
+A binding is the association between a variable name and a variable
+value. A variable name can has different value depending on where the
+reference occurs. For example, in C, a reference refers to the closest
+declaration whose scope lexically enclose the reference site. So, the
+local variable mask the global variable if they have the same name.
 
-#+BEGIN_SRC c
-  int flag = 1;
+In Lisp, when a variable (name) is dynamically bound, the ~let~-binding
+is accessible during the execution of the body of the ~let~
+expression. For example, ~flag~ is dynamically bound. ~let~ establishs a
+new binding for the symbol ~flag~. Although ~setflag~ occurs outside of
+the ~let~ expression, it can still set the value of the binding created
+by the ~let~. After the execution of the ~let~ expression finishes, the
+value of the variable ~flag~ is restored back to its original value ~nil~.
 
-  int testflag() {
-    return flag ? 1 : 0;
-  }
+#+BEGIN_SRC lisp
+  (defvar flag nil)
 
-  int foo() {
-    int flag = 0;
-    flag = 0;
-    return testflag();
-  }
+  (defun testflag ()
+    flag)
 
-  int main() {
-    testflag(); // 1
-    foo(); // 1 
-    testflag(); // 1
-  }
+  (defun setflag (x)
+    (setq flag x))
+
+  (let ((flag nil))
+    (setflag t)
+    (testflag)) ;; t
+  (testflag)    ;; nil
 #+END_SRC
 
-The value of the global variable ~flag~ by default is ~1~. ~foo~ creates a new binding for the name ~flag~ with value ~0~. With the /lexical scoping/ rules, only the references occuring in the function body of ~foo~ refers to the local binding. Reading ~flag~ in ~testflag~, on the other hand, resides outside of ~foo~, which always refers to the global binding (i.e. ~flag = 1~). 
+* How can it be useful?
+
+The feature looks weird, but it helps improve code modularity and
+conciseness.
+
+** Implicit Parameter
+
+Lisp developers usually use dynamically bound variables as
+parameters. When a function has an rarely used option, it is not clean
+to still pass a default value to the function. People usually make it
+an dynamically bound variable and ~let~ bind a new value when the option
+really needs to be configured.
+
+#+BEGIN_SRC lisp
+  (defvar verbose nil)
+
+  (defvar foo ()
+    (if verbose
+        (print "verbose is enabled")
+      ...))
+
+  (let ((verbose t))
+    (foo))
+#+END_SRC
+
+One may argue that a parameter can have a default value like what
+Python do. But a default value cannot prevent tramp data. Imagine that
+the function ~f~ having the option resides deeply in the call tree. If
+we need to pass a non-default value from the top function ~a~ to ~f~, we
+still need to explicitly specify the option parameter in each function
+calls between ~a~ and ~f~. This is the tramp data. First, it is hard to
+maintain. Adding a new option parameter requires updating every call
+site from ~a~ to ~f~. Second, it introduces extra performance overhead
+because function parameters usually have to be stored onto the stack
+before calling the other functions.
+
+Another approach is using global variables or passing one config
+object holding every option parameters. These two appraoches are not
+perfect since we need to explicitly restore back the original value
+when we need to customize. When there are multiple return site or
+exceptions, it is not trivial to make the restoration 100% correct.
+Moreover, when there are recursion, we need to allocate more space for
+old value, otherwise the old old value may be replaced. Dynamically
+bound variables are like function arguments, the old values pushed to
+the stack, and are unwinded when an exception is thrown.
+
+** Modularity
+
+Dynamic binding also benefits modularity by using a dynamic variable
+as the common target of a module. For example, if a group of functions
+print something in different formats. We can make the output file a
+dynamic variable. We can easily change the output target to standard
+output, a editor buffer, a socket, or a text file with a ~let~-binding.
+
+In Emacs, editing function all works on ~(current-buffer)~, which is the
+editor buffer the user is focusing on. Although it is not a real
+variable, it is also dynamically bound. We can temporarily modify it
+with ~(with-current-buffer ...)~, once the buffer is switch, the target
+of the editing functions is also switched.

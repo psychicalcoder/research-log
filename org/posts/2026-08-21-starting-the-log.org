@@ -1,4 +1,0 @@
-#+TITLE: Starting the log
-#+DATE: <2026-08-21 Fri>
-
-A place to write down what I tried this week and what happened, before I forget why. Entries will be short, dated, and left unedited once posted.

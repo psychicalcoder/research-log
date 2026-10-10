@@ -330,6 +330,8 @@ label.org-src-name { display: block; margin-bottom: 0.4rem; font-size: 0.88rem; 
 .org-keyword, .org-builtin, .org-function-name { color: var(--violet); font-weight: 500; }
 .org-string, .org-doc { color: var(--ink-2); }
 .org-comment, .org-comment-delimiter { color: var(--ink-3); font-style: italic; }
+.org-variable-name, .org-type, .org-constant, .org-preprocessor { color: var(--ink); font-weight: 500; }
+.org-warning, .org-negation-char { color: var(--violet); font-weight: 600; }
 
 /* ---------- Quotes ---------- */
 
