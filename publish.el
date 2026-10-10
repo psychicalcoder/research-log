@@ -38,8 +38,8 @@
 
 ;;; Identity ----------------------------------------------------------
 
-(defvar my/site-name  "Marvin Liu")
-(defvar my/site-tagline "Research log")
+(defvar my/site-name  "Regarder le lac")
+(defvar my/site-tagline nil)
 (defvar my/site-author "Marvin Liu")
 
 ;;; Global export tweaks ---------------------------------------------
@@ -175,7 +175,7 @@ because `org-list-to-org' drops the @@html:...@@ snippets."
          ;; as org/index.org and published by this project.
          :auto-sitemap t
          :sitemap-filename "../index.org"
-         :sitemap-title ,(concat my/site-name " — " my/site-tagline)
+         :sitemap-title ,(if my/site-tagline (concat my/site-name " — " my/site-tagline) my/site-name)
          :sitemap-style list
          :sitemap-sort-files anti-chronologically
          :sitemap-format-entry my/sitemap-entry

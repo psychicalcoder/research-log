@@ -13,7 +13,7 @@ org/
   about.org
   posts/            one .org file per entry; the home page lists them newest-first
   css/style.css
-  fonts/            Newsreader, Schibsted Grotesk, IBM Plex Mono; self-hosted (latin subsets)
+  fonts/            Manrope, IBM Plex Mono; self-hosted (latin subsets)
   img/
 html/               output; deploy this directory
 #+end_example
@@ -48,15 +48,13 @@ make serve      # http://localhost:8000
 Inside Emacs: =M-x load-file RET publish.el RET=, then =M-x org-publish-project RET site RET=.
 
 Install the =htmlize= package if you want syntax highlighting in code blocks; the CSS already
-styles its classes (keywords in violet, strings and comments in grey). Without it, code is plain text.
+styles its classes (keywords in ultramarine, strings in green, comments in grey). Without it, code is plain text.
 
 * Design rules (so the site stays this way)
 
-- A white sheet on lavender: a hairline border (=--rule=) frames the page. The sheet is only as
-  wide as the 34rem text column plus an equal margin either side, and is centred on wide screens.
-- Three faces: Newsreader for prose and for post titles in the home-page list; Schibsted Grotesk
-  (heavy weights) for page titles, headings, nav, dates and figure/table numbers; IBM Plex Mono for code only.
-- One strong colour, violet (=--violet=): page titles, the site name, links, section numbers,
-  table rules, the quote bar. Body text is violet-black (=--ink=), not grey.
-- Hairlines (=--rule=) separate. No shadows, no rounded corners, no boxes beyond the sheet itself.
-- Dark mode follows the OS: the same layout on deep purple, with a lighter violet.
+- White watercolour paper: a faint cold-pressed grain (an SVG light filter) on white. The only painted mark is a dry brushstroke for =hr= and footnotes.
+- On desktop the page takes two thirds of the window. A left rail (22%) holds dates and section
+  numbers; running text is capped at 44rem (=--measure=). Phones get one column.
+- Two faces: Manrope for everything, IBM Plex Mono for code only.
+- One accent colour, ultramarine (=--accent=): section numbers, link hover, code keywords.
+- Hairlines (=--rule=) separate. Quotes get a thin dark left rule. Light only, no dark mode.
