@@ -9,3 +9,6 @@ Before EPFL, I was fortunate to collaborate with [[https://cs.nycu.edu.tw/~chuan
 I'm also a chef 🍳, a photographer 📷, a baker 🥖, and a painter 🖌️. 
 
 You can reach me at [[mailto:marvinliu.2001@gmail.com][marvinliu.2001@gmail.com]].
+
+
+[[file:../img/lac_leman.jpg]]
